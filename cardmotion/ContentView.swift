@@ -5,11 +5,20 @@
 //  Created by Armond Schneider on 10/23/24.
 //
 
+// ContentView.swift
+
 import SwiftUI
 
+struct ContentView: View {
+    var body: some View {
+        ShinyCardView()
+    }
+}
 
+// MARK: - Preview
 
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
