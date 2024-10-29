@@ -12,28 +12,32 @@ struct ShinyCardView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 25)
                 .fill(
                     LinearGradient(
-                        gradient: Gradient(colors: [Color(red: 0.95, green: 0.32, blue: 0.43), Color(red: 1, green: 0, blue: 0.53)]),
+                        gradient: Gradient(colors: [
+                            Color(red: 0.95, green: 0.32, blue: 0.43),
+                            Color(red: 1, green: 0, blue: 0.53)
+                        ]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
-                .shadow(color: .black.opacity(0.1), radius: 20, y: 8)
-                // Less sensitive rotation effects by scaling down the pitch and roll
+                .shadow(color: .black.opacity(0.2), radius: 20, y: 2)
+                
+                // Rotation Effect
                 .rotation3DEffect(
-                    .degrees(Double(clamp(value: motionManager.pitch * 10, lower: -10, upper: 10))),
+                    .degrees(Double(clamp(value: adjustedRoll() * 12, lower: -10, upper: 10))),
                     axis: (x: 1.0, y: 0.0, z: 0.0)
                 )
                 .rotation3DEffect(
-                    .degrees(Double(clamp(value: motionManager.roll * 10, lower: -10, upper: 10))),
+                    .degrees(Double(clamp(value: adjustedPitch() * 12, lower: -10, upper: 10))),
                     axis: (x: 0.0, y: 1.0, z: 0.0)
                 )
                 .overlay(
                     ReflectionView()
                         .clipShape(RoundedRectangle(cornerRadius: 25))
-                        .opacity(0.5) // Mirror effect strength
+                        .opacity(0.5)
                 )
                 .frame(width: 330, height: 200)
                 .padding()
@@ -48,17 +52,33 @@ struct ShinyCardView: View {
                     )
                     .blendMode(.overlay)
                 )
+                .animation(.easeOut(duration: 0.2), value: motionManager.pitch + motionManager.roll) // Smooth transitions
         }
     }
 
-    // MARK: - Helper function to clamp values within a range
+    // MARK: - Adjust Pitch
+    private func adjustedPitch() -> CGFloat {
+        let pitch = motionManager.pitch
+
+        // This should keep card flat when holding phone vertically
+        if abs(pitch) > .pi / 2 - 0.1 {
+            return 0
+        }
+        return pitch
+    }
+
+    // MARK: - Adjust Roll (Inverted)
+    private func adjustedRoll() -> CGFloat {
+        return -motionManager.roll
+    }
+
+    // MARK: - Clamp Function to Avoid Excess Rotation
     private func clamp(value: CGFloat, lower: CGFloat, upper: CGFloat) -> CGFloat {
         min(max(value, lower), upper)
     }
 }
 
 // MARK: - Preview
-
 struct ShinyCard_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()

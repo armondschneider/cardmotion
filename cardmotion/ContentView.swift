@@ -16,16 +16,7 @@ struct ContentView: View {
                 .frame(height: 20)
             
             ShinyCardView()
-            
-            Spacer()
-                .frame(height: 40)
-            
-            List {
-                    Text("A List Item")
-                    Text("A Second List Item")
-                    Text("A Third List Item")
-                }
-            .scrollContentBackground(.hidden)
+
         }
     }
 }
