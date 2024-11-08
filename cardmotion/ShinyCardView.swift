@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct ShinyCardView: View {
-    @ObservedObject var motionManager = MotionManager()
+    @State private var rotationX: CGFloat = 0.0
+    @State private var rotationY: CGFloat = 0.0
+    @GestureState private var dragOffset = CGSize.zero
 
     var body: some View {
         ZStack {
@@ -25,19 +27,18 @@ struct ShinyCardView: View {
                 )
                 .shadow(color: .black.opacity(0.2), radius: 20, y: 2)
                 
-                // Rotation Effect
                 .rotation3DEffect(
-                    .degrees(Double(clamp(value: adjustedRoll() * 12, lower: -10, upper: 10))),
-                    axis: (x: 1.0, y: 0.0, z: 0.0)
+                    .degrees(Double(rotationY + dragOffset.width / 10)),
+                    axis: (x: 0.0, y: 1.0, z: 0.0)
                 )
                 .rotation3DEffect(
-                    .degrees(Double(clamp(value: adjustedPitch() * 12, lower: -10, upper: 10))),
-                    axis: (x: 0.0, y: 1.0, z: 0.0)
+                    .degrees(Double(rotationX - dragOffset.height / 10)),
+                    axis: (x: 1.0, y: 0.0, z: 0.0)
                 )
                 .overlay(
                     ReflectionView()
                         .clipShape(RoundedRectangle(cornerRadius: 25))
-                        .opacity(0.5)
+                        .opacity(0.5) // to do mirror effect
                 )
                 .frame(width: 330, height: 200)
                 .padding()
@@ -52,29 +53,21 @@ struct ShinyCardView: View {
                     )
                     .blendMode(.overlay)
                 )
-                .animation(.easeOut(duration: 0.2), value: motionManager.pitch + motionManager.roll) // Smooth transitions
+                .gesture(
+                    DragGesture()
+                        .updating($dragOffset) { value, state, _ in
+                            state = value.translation
+                        }
+                        .onEnded { _ in
+                            // reset
+                            withAnimation(.easeOut(duration: 0.8)) {
+                                rotationX = 0
+                                rotationY = 0
+                            }
+                        }
+                )
+                .animation(.easeOut(duration: 0.2), value: rotationX + rotationY) // Smooth transitions
         }
-    }
-
-    // MARK: - Adjust Pitch
-    private func adjustedPitch() -> CGFloat {
-        let pitch = motionManager.pitch
-
-        // This should keep card flat when holding phone vertically
-        if abs(pitch) > .pi / 2 - 0.1 {
-            return 0
-        }
-        return pitch
-    }
-
-    // MARK: - Adjust Roll (Inverted)
-    private func adjustedRoll() -> CGFloat {
-        return -motionManager.roll
-    }
-
-    // MARK: - Clamp Function to Avoid Excess Rotation
-    private func clamp(value: CGFloat, lower: CGFloat, upper: CGFloat) -> CGFloat {
-        min(max(value, lower), upper)
     }
 }
 
